@@ -21,11 +21,22 @@ class Module:
 
     def train(self):
         "Set the mode of this module and all descendent modules to `train`."
-        raise NotImplementedError('Need to include this file from past assignment.')
+        # TODO: Implement for Task 0.4.
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        self.training = True
+        # 注意子模块也要设置状态
+        if len(self._modules) !=0:
+            for key in self._modules:
+                self._modules[key].train()
 
     def eval(self):
         "Set the mode of this module and all descendent modules to `eval`."
-        raise NotImplementedError('Need to include this file from past assignment.')
+        # TODO: Implement for Task 0.4.
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        self.training = False
+        for key in self._modules:
+                self._modules[key].eval()
+
 
     def named_parameters(self):
         """
@@ -35,11 +46,23 @@ class Module:
         Returns:
             list of pairs: Contains the name and :class:`Parameter` of each ancestor parameter.
         """
-        raise NotImplementedError('Need to include this file from past assignment.')
+        # TODO: Implement for Task 0.4.
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        res = {}
+        for key in self._parameters:
+            res[key] = self._parameters[key]
+        for sub_module_name in self._modules:
+            sub_named_parameters = self._modules[sub_module_name].named_parameters()
+            for sub_para_key, sub_para_v in sub_named_parameters.items():
+                res[sub_module_name+'.'+sub_para_key] = sub_para_v
+        
+        return res
 
     def parameters(self):
         "Enumerate over all the parameters of this module and its descendents."
-        raise NotImplementedError('Need to include this file from past assignment.')
+        # TODO: Implement for Task 0.4.
+        # raise NotImplementedError("Need to implement for Task 0.4")
+        return self.named_parameters().values()
 
     def add_parameter(self, k, v):
         """

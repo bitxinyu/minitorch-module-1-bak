@@ -55,6 +55,8 @@ one_arg, two_arg, _ = MathTestVariable._tests()
 @pytest.mark.parametrize("fn", one_arg)
 def test_one_args(fn, t1):
     name, base_fn, scalar_fn = fn
+    if name=='exp':
+        print("xx")
     assert_close(scalar_fn(t1).data, base_fn(t1.data))
 
 

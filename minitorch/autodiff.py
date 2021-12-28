@@ -238,7 +238,7 @@ class FunctionBase:
                 v.used += 1
                 raw_vals.append(v.get_data())
             else:
-                raw_vals.append(v)
+                raw_vals.append(cls.data_type(v)) # v为python原生类型时，直接结算结果可能类型不匹配
 
         # Create the context.
         ctx = Context(not need_grad)
