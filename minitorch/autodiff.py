@@ -191,7 +191,10 @@ class History:
             list of numbers : a derivative with respect to `inputs`
         """
         # TODO: Implement for Task 1.4.
-        raise NotImplementedError('Need to implement for Task 1.4')
+        # raise NotImplementedError('Need to implement for Task 1.4')
+        if not self.last_fn:
+            return []
+        return self.last_fn.chain_rule(self.ctx, self.inputs, d_output)
 
 
 class FunctionBase:
@@ -238,7 +241,7 @@ class FunctionBase:
                 v.used += 1
                 raw_vals.append(v.get_data())
             else:
-                raw_vals.append(cls.data_type(v)) # v为python原生类型时，直接结算结果可能类型不匹配
+                raw_vals.append(cls.data_type(v)) # v为python原生类型时，直接计算结果可能类型不匹配
 
         # Create the context.
         ctx = Context(not need_grad)
@@ -274,7 +277,13 @@ class FunctionBase:
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
         # TODO: Implement for Task 1.3.
-        raise NotImplementedError('Need to implement for Task 1.3')
+        # raise NotImplementedError('Need to implement for Task 1.3')
+        # ctx 只保留反向传播需要用到的参数
+        back = cls.backward(ctx, d_output)
+        back = wrap_tuple(back)
+        
+        return [(input, b) for input, b in zip(inputs, back) if not is_constant(input)]
+
 
 
 # Algorithms for backpropagation
@@ -296,8 +305,48 @@ def topological_sort(variable):
                             starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    # raise NotImplementedError('Need to implement for Task 1.4')
+    # 使用DFS 拓扑排序, 可利用的参数
+    # variable ==> (value, history), 
+    # history ==> (last_fn=None, ctx=None, inputs)
+    # 要使用dfs，需要先定义好什么是节点
+    # 把Variable和产生此Variable的Function合在一起当作图节点
 
+    topo_order = []
+    
+    """
+    def DFS(variable:Variable):
+        if is_constant(variable):
+            return
+        if variable.used==0:
+            topo_order.append(variable)
+            if variable.history and variable.history.inputs:
+                for input in variable.history.inputs:
+                    if isinstance(input, Variable):
+                        input.used -= 1
+                        DFS(input)
+    # 修改used参数没问题吗？
+    # 需要检查是否是无环图吗？
+    DFS(variable)
+    
+    """
+    
+    seen = set() 
+    def DFS(variable:Variable):
+        if variable.unique_id in seen:
+            return
+        if is_constant(variable):
+            return
+        if not variable.is_leaf(): 
+            for v in variable.history.inputs:
+                if not is_constant(v):
+                    DFS(v)
+        seen.add(variable.unique_id)
+        topo_order.insert(0, variable)
+        
+    DFS(variable)
+    
+    return topo_order
 
 def backpropagate(variable, deriv):
     """
@@ -313,4 +362,26 @@ def backpropagate(variable, deriv):
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    # raise NotImplementedError('Need to implement for Task 1.4')
+    # chain_rule 需要 (cls, ctx, inputs, d_output) 
+    # variable ==> (value, history), 
+    # history ==> (last_fn=None, ctx=None, inputs)
+    topo_order = topological_sort(variable)
+    var_2_driv = {
+        variable.unique_id: deriv
+    }
+
+    for var in topo_order:
+        if var.is_leaf():
+            var.accumulate_derivative(var_2_driv[var.unique_id])
+        else:
+            back = var.history.backprop_step(var_2_driv[var.unique_id])
+            # back [ (variable, deriv), ...]
+            for b in back:
+                var_b = b[0]
+                deriv_b = b[1]
+                if var_b.unique_id in var_2_driv:
+                    var_2_driv[var_b.unique_id] +=deriv_b
+                else:
+                    var_2_driv[var_b.unique_id] = deriv_b
+

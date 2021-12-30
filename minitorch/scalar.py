@@ -331,7 +331,7 @@ class LT(ScalarFunction):
     def backward(ctx, d_output):
         # TODO: Implement for Task 1.4.
         # raise NotImplementedError('Need to implement for Task 1.4')
-        return 0.0
+        return 0.0, 0,0
 
 
 class EQ(ScalarFunction):
@@ -347,7 +347,7 @@ class EQ(ScalarFunction):
     def backward(ctx, d_output):
         # TODO: Implement for Task 1.4.
         # raise NotImplementedError('Need to implement for Task 1.4')
-        return 0.0
+        return 0.0, 0.0
 
 
 def derivative_check(f, *scalars):
